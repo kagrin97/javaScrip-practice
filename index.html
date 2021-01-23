@@ -12,17 +12,32 @@
       <h1>00:00</h1>
     </div>
     <form class="js-form form">
-      <input type="text" placeholder="What is your name?" />
+      <input type="text" class="name__form" placeholder="What is your name?" />
     </form>
     <h4 class="js-greetings greetings"></h4>
 
-    <form class="js-toDoForm">
-      <input type="text" placeholder="Writew a to do" />
-    </form>
-    <ul class="js-toDoList"></ul>
-
+    <div class="task__box">
+      <h1 class="task">Task :</h1>
+      <form class="jsForm">
+        <input type="text" placeholder="Add Task" />
+      </form>
+    </div>
+    <figure class="swing">
+      <img src="images/4.jpg" width="200" />
+      <div class="pendingContainer">
+        <span class="pendingTitle">Pending</span>
+        <ul class="pendingList"></ul>
+      </div>
+      <div class="finishedContainer">
+        <span class="finishedTitle">Finished</span>
+        <ul class="finishedList"></ul>
+      </div>
+    </figure>
+    <span class="js-weather"></span>
     <script src="clock.js"></script>
     <script src="gretting.js"></script>
     <script src="todo.js"></script>
+    <script src="bg.js"></script>
+    <script src="weather.js"></script>
   </body>
 </html>

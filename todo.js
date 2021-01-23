@@ -1,69 +1,153 @@
-const toDoForm = document.querySelector(".js-toDoForm"),
-    toDoInput = toDoForm.querySelector("input"),
-    toDoList = document.querySelector(".js-toDoList");
+const toDoForm = document.querySelector(".jsForm");
+const toDoInput = toDoForm.querySelector("input");
+const toDoFin = document.querySelector(".finishedList");
+const toDoPen = document.querySelector(".pendingList");
 
+const PENDINGLS = "pending";
+const FINISHEDLS = "finished";
 
-const TODOS_LS = "toDos"
+let pendingArray = [];
+let finishedArray = [];
 
-let toDos = [];
+const randomId = Date.now();
 
+function upPenLS(li) {
+  const leftPending = pendingArray.filter((todo) => {
+    const text = li.querySelector("span").textContent;
+    return todo.text !== text;
+  });
+  pendingArray = leftPending;
+  savePending(pendingArray);
+}
+
+function upFinLS(li) {
+  const leftFinished = finishedArray.filter((todo) => {
+    const text = li.querySelector("span").textContent;
+    return todo.text !== text;
+  });
+  finishedArray = leftFinished;
+  saveFinish(finishedArray);
+}
+
+function switchBoard(event) {
+  if (event.path[2] === toDoPen) {
+    const li = event.path[1];
+    const btn = event.path[0];
+    btn.innerHTML = `↩`;
+    const text = li.firstChild.textContent;
+    saveFinishedToDos(li, text);
+    upPenLS(li);
+    toDoFin.appendChild(li);
+  } else {
+    const li = event.path[1];
+    const btn = event.path[0];
+    btn.innerHTML = `✅`;
+    const text = li.firstChild.textContent;
+    savePendingToDos(li, text);
+    upFinLS(li);
+    toDoPen.appendChild(li);
+  }
+}
+
+function saveFinishedToDos(li, text) {
+  const finishedObj = {
+    id: randomId,
+    text: text
+  };
+  li.id = finishedObj.id;
+  finishedArray.push(finishedObj);
+  saveFinish(finishedArray);
+}
+
+function saveFinish() {
+  localStorage.setItem(FINISHEDLS, [JSON.stringify(finishedArray)]);
+}
+
+function savePending(array) {
+  localStorage.setItem(PENDINGLS, [JSON.stringify(array)]);
+}
+
+function savePendingToDos(li, text) {
+  const penObj = {
+    id: randomId,
+    text: text
+  };
+  li.id = penObj.id;
+  pendingArray.push(penObj);
+  savePending(pendingArray);
+}
 
 function deleteToDos(event) {
-    const btn = event.target;
-    const li = btn.parentNode;
-    toDoList.removeChild(li);
-    const cleanToDos = toDos.filter(function(toDo) {
-        return toDo.id !== parseInt(li.id);
-      });
-      toDos = cleanToDos;
-      saveToDos();
-    }
-
-function saveToDos() {
-    localStorage.setItem(TODOS_LS, JSON.stringify(toDos));
+  if (event.path[2] === toDoPen) {
+    const li = event.path[1];
+    toDoPen.removeChild(li);
+    upPenLS(li);
+  } else {
+    const li = event.path[1];
+    toDoFin.removeChild(li);
+    upFinLS(li);
+  }
 }
 
-function paintToDo(text) {
-    console.log("hi");
-    const li = document.createElement("li");
-    const delBtn = document.createElement("button");
-    const span = document.createElement("span");
-    const newId = toDos.length + 1;
-    delBtn.innerText = "❌";
-    delBtn.addEventListener("click", deleteToDos);
-    span.innerText = text;
-    li.appendChild(delBtn);
-    li.appendChild(span);
-    li.id = newId;
-    toDoList.appendChild(li);   
-    const toDoObj = {
-        text: text,
-        id: newId
-    }
-    toDos.push(toDoObj)
-    saveToDos();
+function addPen(text) {
+  const li = document.createElement("li");
+  const span = document.createElement("span");
+  const delBtn = document.createElement("button");
+  const checkBtn = document.createElement("button");
+  checkBtn.addEventListener("click", switchBoard);
+  delBtn.addEventListener("click", deleteToDos);
+  span.innerHTML = text;
+  delBtn.innerHTML = `❌`;
+  checkBtn.innerHTML = `✅`;
+  savePendingToDos(li, text);
+  toDoPen.appendChild(li);
+  li.appendChild(span);
+  li.appendChild(delBtn);
+  li.appendChild(checkBtn);
 }
 
-function handleSubmit(event) {
-    event.preventDefault();
-    const currentValue = toDoInput.value;
-    paintToDo(currentValue);
-    toDoInput.value = "";
+function addFin(text) {
+  const li = document.createElement("li");
+  const span = document.createElement("span");
+  const delBtn = document.createElement("button");
+  const checkBtn = document.createElement("button");
+  checkBtn.addEventListener("click", switchBoard);
+  delBtn.addEventListener("click", deleteToDos);
+  span.innerHTML = text;
+  delBtn.innerHTML = `❌`;
+  checkBtn.innerHTML = `↩`;
+  saveFinishedToDos(li, text);
+  toDoFin.appendChild(li);
+  li.appendChild(span);
+  li.appendChild(delBtn);
+  li.appendChild(checkBtn);
 }
 
-function loadToDos() {
-    const loadedToDos = localStorage.getItem(TODOS_LS);
-  if (loadedToDos !== null) {
-    const parsedToDos = JSON.parse(loadedToDos);
-    parsedToDos.forEach(function(toDo) {
-      paintToDo(toDo.text);
+function loadData() {
+  const loadDataPen = localStorage.getItem(PENDINGLS);
+  const loadDataFin = localStorage.getItem(FINISHEDLS);
+  if (loadDataPen !== null) {
+    const parsePen = JSON.parse(loadDataPen);
+    parsePen.forEach((pending) => {
+      addPen(pending.text);
+    });
+    const parseFin = JSON.parse(loadDataFin);
+    parseFin.forEach((finished) => {
+      addFin(finished.text);
     });
   }
 }
 
+function handleSubmit(event) {
+  event.preventDefault();
+  const currentText = toDoInput.value;
+  addPen(currentText);
+  toDoInput.value = "";
+}
+
 function init() {
-    loadToDos();
-    toDoForm.addEventListener("submit", handleSubmit);
+  loadData();
+  toDoForm.addEventListener("submit", handleSubmit);
 }
 
 init();
